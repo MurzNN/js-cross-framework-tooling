@@ -1,0 +1,22 @@
+/** @type {{ repoUrl: string, packages: Array<{ id: string, name?: string, dir: string, title: string, blurb: string, homepage: string }> }} */
+export default {
+  repoUrl: 'https://github.com/MurzNN/js-COMPONENT',
+  packages: [
+    {
+      id: 'vue',
+      name: 'vue-COMPONENT',
+      dir: 'packages/vue',
+      title: 'vue-COMPONENT',
+      blurb: 'Vue 3 adapter description.',
+      homepage: 'https://murznn.github.io/js-COMPONENT/vue/',
+    },
+    {
+      id: 'react',
+      name: 'react-COMPONENT',
+      dir: 'packages/react',
+      title: 'react-COMPONENT',
+      blurb: 'React adapter description.',
+      homepage: 'https://murznn.github.io/js-COMPONENT/react/',
+    },
+  ],
+}

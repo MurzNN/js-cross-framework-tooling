@@ -1,0 +1,83 @@
+# Template: copy to .github/workflows/publish.yml
+#
+# Publishes vue-* + react-* adapters via npm Trusted Publishing (OIDC).
+# The Trusted Publisher "Workflow filename" on npmjs.com must be exactly: publish.yml
+# (this file in THIS repo — do not invoke publish via cross-repo workflow_call).
+#
+# Release:
+#   1. pnpm release / pnpm release minor|major|x.y.z  (release-it: bumps, CHANGELOG, commit, tag, push, GH Release)
+#   2. This workflow publishes to npm; github-release job is an idempotent fallback.
+#
+# Customize the `pnpm --filter … publish` package names for your component.
+name: Publish packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # required for npm OIDC
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      # Trusted publishing needs npm >= 11.5.1 (Node's bundled npm may be older).
+      - name: Ensure npm supports OIDC
+        run: npm install -g npm@^11.5.1
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck, lint, test
+        run: |
+          pnpm typecheck
+          pnpm lint
+          pnpm test
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Publish to npm
+        run: >
+          pnpm --filter vue-COMPONENT --filter react-COMPONENT
+          publish --access public --no-git-checks
+
+  github-release:
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node scripts/github-release.mjs

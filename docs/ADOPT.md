@@ -35,7 +35,7 @@ scripts/github-release.mjs
 
 Pin versions to whatever is current when you adopt; run `pnpm install`.
 
-Version source of truth for bumps is `packages/vue/package.json` (via `@release-it/bumper` `in`). Root `package.json` version is updated by release-it’s npm plugin but is not published.
+Version source of truth for bumps is `packages/vue/package.json` (via `@release-it/bumper` `in`). Bumper also writes `packages/react/package.json` and the root `package.json`. The npm plugin is disabled (`"npm": false`) so it does not fight bumper with `npm version` / “Version not changed”.
 
 ## 4. Workflows
 
